@@ -11,39 +11,52 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(express.static(path.join(__dirname, "Develop/public")));
 
+//Note Array 
+
+let notes = [];
+
 /* HTML Routing */
+
 //Homepage route
 app.get('*', function(req, res) {
     res.sendFile(path.join(__dirname, "Develop/public/index.html"));
 });
 
 //Notes route
-app.get('/notes.html', function(req,res) {
+app.get('/notes', function(req,res) {
     res.sendFile(path.join(__dirname, 'Develop/public/notes.html'));
 });
 
 
 /* API Routes */
 
+//Return saved files
+
 app.get('/api/notes', function(req, res) {
     res.sendFile(path.join(__dirname,'Develop/db/db.json'));
 })
 
+//Recieve new note - save on the reqest body -add to db.json
+app.post('/api/notes', function(req, res){ 
+    //read past note(s)
+    notes = fs.readFileSync('Develop/db/db.json', 'utf8');
+    //parse the note
+    notes = JSON.parse(notes);
+    //add it to the body
+    req.body.id = notes.length;
+    notes.push(req.body);
+    notes = JSON.stringify(notes);
 
-// app.get('/api/notes', function(req, res) {
-//    const savedNotes =  fs.readFile(db , (err, data) => {
-//        if(err) throw err;
-//    })
-//     res.sendFile(savedNotes)
-// });
+    fs.writeFile("Develop/db/db.json", notes, "utf8", function(err){
+        if (err) throw err;
+    });
+    res.json(JSON.parse(notes));
+})
 
-//Saved notes
+//Delete note
 
-// app.post('/api/notes/:id', function (req, res) {
-//     console.log(req.body);
-//     const addedNotes = res.send(db);
-//     const addAll = fs.appendFile(addedNotes, (err, data) => {
-//         if(err) throw err;
-//     })
-//     res.sendFile(addAll);
-// });
+app.delete('/api/notes/:id', notes, function(err){
+    if (err) throw err;
+
+})
+

@@ -6,7 +6,12 @@ const path = require('path');
 
 //Create Server 
 var server = app.listen(3030);
+//Heroku Server
+var PORT = process.env.PORT || 3030;
 
+app.listen(PORT, function() {
+    console.log("App listening on PORT: " + PORT)
+});
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(express.static(path.join(__dirname, "Develop/public")));
@@ -14,11 +19,10 @@ app.use(express.static(path.join(__dirname, "Develop/public")));
 //Note Array 
 
 let notes = [];
-
 /* HTML Routing */
 
 //Homepage route
-app.get('*', function(req, res) {
+app.get('/', function(req, res) {
     res.sendFile(path.join(__dirname, "Develop/public/index.html"));
 });
 
@@ -37,9 +41,10 @@ app.get('/api/notes', function(req, res) {
 })
 
 //Recieve new note - save on the reqest body -add to db.json
+
 app.post('/api/notes', function(req, res){ 
     //read past note(s)
-    notes = fs.readFileSync('Develop/db/db.json', 'utf8');
+    notes = fs.readFile('Develop/db/db.json', 'utf8');
     //parse the note
     notes = JSON.parse(notes);
     //add it to the body
@@ -51,12 +56,30 @@ app.post('/api/notes', function(req, res){
         if (err) throw err;
     });
     res.json(JSON.parse(notes));
-})
-
+});
 //Delete note
 
 app.delete('/api/notes/:id', notes, function(err){
     if (err) throw err;
 
-})
+    notes = fs.readFile("Develop/db/db.json", notes, "utf8", function(err) {
+        if (err) throw err;
+    });
 
+    notes = JSON.parse(notes);
+
+    notes = notes.filter(function(note) {
+        return note.id != req.params.id;
+    });
+
+    notes = JSON.stringify(notes);
+
+    fs.writeFile("Develop/db/db.json", "utf8", function(err) {
+        if (err) throw err;
+    });
+
+    res.send(JSON.parse(notes));
+
+});
+
+//  

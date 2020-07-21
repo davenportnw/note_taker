@@ -9,7 +9,7 @@ const { join } = require('path');
 
 
 //Heroku Server
-var PORT = process.env.PORT || 3060;
+var PORT = process.env.PORT || 3000;
 
 app.listen(PORT, function() {
     console.log("App listening on PORT: " + PORT)
@@ -22,7 +22,6 @@ app.use(express.static("Develop/public"));
 app.engine('html', require('ejs').renderFile);
 
 
-let idNumber = 1;
 /* HTML Routing */
 
 //Homepage route
@@ -82,14 +81,16 @@ app.delete('/api/notes/:id', function(req, res, next) {
 function getJson() {
     let data = fs.readFileSync(__dirname + "/Develop/db/db.json");
     let json = JSON.parse(data);
+    json.forEach((item, i) => {
+        item.id = i + 1;
+    });
     return json;
 }
 // return json as an object
 
 function noteObject(data) {
-    idNumber += 1;
+
     let userInput = {
-        id: idNumber,
         title: data.text,
         text: data.text,
         complete: false,
@@ -104,7 +105,6 @@ function addNotetoJson(note) {
     let json = getJson();
     let newNote = noteObject(note);
     json.push(newNote);
-    // console.log("new json", json);
     saveNote(json);
 }
 function saveNote(jsonData) {

@@ -57,7 +57,7 @@ app.get('/api/notes', function(req, res, next) {
 //Recieve NEW note - SAVE on the reqest body -ADD to db.json
 
 app.post('/api/notes', function(req, res, next) {
-    console.log('api POST');
+    // console.log('api POST');
     addNotetoJson(req.body);
     res.json(getJson());
     next()
@@ -65,14 +65,17 @@ app.post('/api/notes', function(req, res, next) {
 });
 
 //DELETE selected notes
+app.get('/api/notes/:id', function(req, res, next) {
+    let json = getJson();
+    res.json(json);
+    next();
+});
 
 app.delete('/api/notes/:id', function(req, res, next) {
     deleteNote(req.params.id);
-    // console.log("req.params.id", req.params.id);
     res.json(getJson());
-    console.log("req.params.id", req.params.id);
+    // res.send(json);
 });
-
 
 
 //Functions to add/delete/save
@@ -81,9 +84,11 @@ app.delete('/api/notes/:id', function(req, res, next) {
 function getJson() {
     let data = fs.readFileSync(__dirname + "/Develop/db/db.json");
     let json = JSON.parse(data);
+
     json.forEach((item, i) => {
         item.id = i + 1;
     });
+
     return json;
 }
 // return json as an object
@@ -91,12 +96,11 @@ function getJson() {
 function noteObject(data) {
 
     let userInput = {
-        title: data.text,
+        title: data.title,
         text: data.text,
-        complete: false,
-        hidden: false
+        // complete: false,
+        // hide: false
     }
-
     return userInput;
 
 }
@@ -114,6 +118,7 @@ function saveNote(jsonData) {
 
 function deleteNote(id) {
     let json = getJson();
-    json[id].hidden = true;
-    saveJson(json);
+    json.slice(id);
+    json.pop(id);
+    saveNote(json);
 }
